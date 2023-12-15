@@ -1,4 +1,4 @@
-# SightseeingKnowledgeGraph
+# Knowledge Graph with Tourist Review (KGTR)
 
 This project is the sourse code of paper "Tourist Attractions Prediction with Enhanced Location Knowledge Graph" accepted by The 21th International Conference on Smart City (Smart City 2023).
 
