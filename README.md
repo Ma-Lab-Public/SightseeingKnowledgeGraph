@@ -1,6 +1,10 @@
 # Knowledge Graph with Tourist Review (KGTR)
 
-This project is the sourse code of paper "Tourist Attractions Prediction with Enhanced Location Knowledge Graph" accepted by The 21th International Conference on Smart City (Smart City 2023).
+This project is the sourse code of paper "Tourist Attractions Prediction with Enhanced Location Knowledge Graph" published by 
+The 2023 IEEE International Conference on High Performance Computing & Communications, Data Science & Systems, Smart City & Dependability in Sensor, Cloud & Big Data Systems & Application (HPCC/DSS/SmartCity/DependSys).
+
+Please refer to the paper for details:
+https://ieeexplore.ieee.org/document/10466836
 
 We also public all the data, which we collected by ourselves, used in the paper here.
 
