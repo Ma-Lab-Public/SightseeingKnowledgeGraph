@@ -38,10 +38,19 @@ def NeuralNMF(X,S,T,
 	numofhours = np.size(S, 1)
 	featurelen = k_v
 	numberofedges = np.count_nonzero(T)
-	U = rng.random((numofusers, featurelen)).astype(aesara.config.floatX)
+	with open("plkfiles/U_bert.plk", 'rb') as input1:
+		U_b = pickle.load(input1, encoding='latin1')
+	with open("plkfiles/V_bert.plk", 'rb') as input1:
+		V_b = pickle.load(input1, encoding='latin1')
+	# U_n = np.add(U, U_b)
+	# V_n = np.add(V, V_b)
+
+	# U = rng.random((numofusers, featurelen)).astype(aesara.config.floatX)
+	U = U_b
 	tU = aesara.shared(U,name="U")
 
-	V = rng.random((numofgrids, k_v)).astype(aesara.config.floatX)
+	# V = rng.random((numofgrids, k_v)).astype(aesara.config.floatX)
+	V = V_b
 	tV = aesara.shared(V,name="V")
 
 	E = rng.random((numofhours, k_v)).astype(aesara.config.floatX)
@@ -226,7 +235,7 @@ def Recall_based_evaluation(observed_X, latent_U, latent_V, observed_indexes):
 
 def test_NeuralNMF():
 	X,S,T = Load_data()
-	num_rows_to_sample = 10 #dense setting, i.e., x=30% \times 2500=750
+	num_rows_to_sample = int(91*0.3) #dense setting, i.e., x=30% \times 2500=750
 	Lambda_S=1
 	Lambda_T=100
 	Lambda_rs=1
@@ -246,13 +255,15 @@ def test_NeuralNMF():
 						num_rows_to_sample=num_rows_to_sample)
 		# print("U: ", U.shape)
 		# print("V: ", V.shape)
+
 		with open("plkfiles/U_bert.plk", 'rb') as input1:
 			U_b = pickle.load(input1, encoding='latin1')
 		with open("plkfiles/V_bert.plk", 'rb') as input1:
 			V_b = pickle.load(input1, encoding='latin1')
 		U_n = np.add(U, U_b)
 		V_n = np.add(V, V_b)
-		recalls = Recall_based_evaluation(X, U, V, indexes)
+			
+		recalls = Recall_based_evaluation(X, U_n, V_n, indexes)
 		print(recalls)
 		total_recall = total_recall+np.array(recalls)
 
