@@ -5,6 +5,7 @@ import pandas as pd
 from aesara import tensor as Tr
 from collections import OrderedDict
 from sklearn import preprocessing
+from sklearn.decomposition import PCA
 
 
 def NeuralNMF(X,S,T,
@@ -38,19 +39,10 @@ def NeuralNMF(X,S,T,
 	numofhours = np.size(S, 1)
 	featurelen = k_v
 	numberofedges = np.count_nonzero(T)
-	with open("plkfiles/U_bert.plk", 'rb') as input1:
-		U_b = pickle.load(input1, encoding='latin1')
-	with open("plkfiles/V_bert.plk", 'rb') as input1:
-		V_b = pickle.load(input1, encoding='latin1')
-	# U_n = np.add(U, U_b)
-	# V_n = np.add(V, V_b)
-
-	# U = rng.random((numofusers, featurelen)).astype(aesara.config.floatX)
-	U = U_b
+	U = rng.random((numofusers, featurelen)).astype(aesara.config.floatX)
 	tU = aesara.shared(U,name="U")
 
-	# V = rng.random((numofgrids, k_v)).astype(aesara.config.floatX)
-	V = V_b
+	V = rng.random((numofgrids, k_v)).astype(aesara.config.floatX)
 	tV = aesara.shared(V,name="V")
 
 	E = rng.random((numofhours, k_v)).astype(aesara.config.floatX)
@@ -169,12 +161,9 @@ def Load_data(normalized=True):
 	S = None #observed time series
 	T = None #observed transition matrix
 
-	# f_X = "plkfiles/X.plk" 
-	# f_S = "plkfiles/S.plk"
-	# f_T = "plkfiles/T.plk"
-	f_X = "plkfiles/X_Gmap.plk" 
-	f_S = "plkfiles/S_Gmap.plk"
-	f_T = "plkfiles/T_Gmap.plk"
+	f_X = "prepros/X_Gmap.plk" 
+	f_S = "prepros/S_Gmap.plk"
+	f_T = "prepros/T_Gmap.plk"
 	with open(f_X, 'rb') as input1:
 		X = pickle.load(input1, encoding='latin1')
 
@@ -184,18 +173,21 @@ def Load_data(normalized=True):
 	with open(f_T, 'rb') as input3:
 		T = pickle.load(input3, encoding='latin1')
 	
-	# df = pd.DataFrame(X)
-	# df.to_csv(r'X.csv')
-	# df = pd.DataFrame(S)
-	# df.to_csv(r'S.csv')
-	# df = pd.DataFrame(T)
-	# df.to_csv(r'T.csv')
-	
 	if normalized:
 		X = preprocessing.normalize(X)
 		S = preprocessing.normalize(S)
 		T = preprocessing.normalize(T)
 	
+	f_X_pca = "prepros/U_pca.plk" 
+	with open(f_X_pca, 'rb') as input2:
+		X_pca = pickle.load(input2, encoding='latin1')
+	f_S_pca = "prepros/V_pca.plk"
+	with open(f_S_pca, 'rb') as input3:
+		S_pca = pickle.load(input3, encoding='latin1')
+
+	X = np.add(X, X_pca)
+	S = np.add(S, S_pca)
+
 	print(X.shape, X.mean())
 	print(S.shape, S.mean())
 	print(T.shape, T.mean())
@@ -235,7 +227,7 @@ def Recall_based_evaluation(observed_X, latent_U, latent_V, observed_indexes):
 
 def test_NeuralNMF():
 	X,S,T = Load_data()
-	num_rows_to_sample = int(91*0.3) #dense setting, i.e., x=30% \times 2500=750
+	num_rows_to_sample = 30 #dense setting, i.e., x=30% \times 2500=750
 	Lambda_S=1
 	Lambda_T=100
 	Lambda_rs=1
@@ -246,24 +238,37 @@ def test_NeuralNMF():
 	k_r = 5
 
 	total_recall = np.zeros((1,6))
-	rounds = 3
+	rounds = 5
 	for i in range(rounds):
 		U,V,E,I,R,W_neural,O_neural,indexes=NeuralNMF(X,S,T,
 						k_v=k_v, k_r=k_r, numberofrelations=numberofrelations,
 						Lambda_S=Lambda_S,Lambda_T=Lambda_T,Lambda_rs=Lambda_rs,
 						lr=lr,itr=itr,
 						num_rows_to_sample=num_rows_to_sample)
-		# print("U: ", U.shape)
-		# print("V: ", V.shape)
 
-		with open("plkfiles/U_bert.plk", 'rb') as input1:
+		with open("prepros/U_bert.plk", 'rb') as input1:
 			U_b = pickle.load(input1, encoding='latin1')
-		with open("plkfiles/V_bert.plk", 'rb') as input1:
+		with open("prepros/V_bert.plk", 'rb') as input1:
 			V_b = pickle.load(input1, encoding='latin1')
-		U_n = np.add(U, U_b)
-		V_n = np.add(V, V_b)
-			
-		recalls = Recall_based_evaluation(X, U_n, V_n, indexes)
+
+		U = np.add(U, U_b)
+		V = np.add(V, V_b)
+
+		# with open("prepros/U_10.plk", 'rb') as input1:
+		# 	U_10 = pickle.load(input1, encoding='latin1')
+		# with open("prepros/V_10.plk", 'rb') as input1:
+		# 	V_10 = pickle.load(input1, encoding='latin1')
+		
+		# U = np.add(U_10, U)
+		# V = np.add(V_10, V)
+
+		# with open('U_n.plk', '+bw') as f:
+		# 	pickle.dump(U_n, f)
+
+		# with open('V_n.plk', '+bw') as f:
+		# 	pickle.dump(V_n, f)
+
+		recalls = Recall_based_evaluation(X, U, V, indexes)
 		print(recalls)
 		total_recall = total_recall+np.array(recalls)
 
