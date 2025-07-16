@@ -161,9 +161,9 @@ def Load_data(normalized=True):
 	S = None #observed time series
 	T = None #observed transition matrix
 
-	f_X = "prepros/X_Gmap.plk" 
-	f_S = "prepros/S_Gmap.plk"
-	f_T = "prepros/T_Gmap.plk"
+	f_X = "plkfiles/X_Gmap_100.plk" 
+	f_S = "plkfiles/S_Gmap.plk"
+	f_T = "plkfiles/T_Gmap_100.plk"
 	with open(f_X, 'rb') as input1:
 		X = pickle.load(input1, encoding='latin1')
 
@@ -178,15 +178,14 @@ def Load_data(normalized=True):
 		S = preprocessing.normalize(S)
 		T = preprocessing.normalize(T)
 	
-	f_X_pca = "prepros/U_pca.plk" 
-	with open(f_X_pca, 'rb') as input2:
-		X_pca = pickle.load(input2, encoding='latin1')
-	f_S_pca = "prepros/V_pca.plk"
-	with open(f_S_pca, 'rb') as input3:
-		S_pca = pickle.load(input3, encoding='latin1')
+	# with open("plkfiles/U_pca_100.plk", 'rb') as input2:
+	# 	X_pca = pickle.load(input2, encoding='latin1')
+	# f_S_pca = "plkfiles/V_pca.plk"
+	# with open(f_S_pca, 'rb') as input3:
+	# 	S_pca = pickle.load(input3, encoding='latin1')
 
-	X = np.add(X, X_pca)
-	S = np.add(S, S_pca)
+	# X = np.add(X, X_pca)
+	# S = np.add(S, S_pca)
 
 	print(X.shape, X.mean())
 	print(S.shape, S.mean())
@@ -246,27 +245,13 @@ def test_NeuralNMF():
 						lr=lr,itr=itr,
 						num_rows_to_sample=num_rows_to_sample)
 
-		with open("prepros/U_bert.plk", 'rb') as input1:
+		with open("plkfiles/U_bert_100.plk", 'rb') as input1:
 			U_b = pickle.load(input1, encoding='latin1')
-		with open("prepros/V_bert.plk", 'rb') as input1:
+		with open("plkfiles/V_bert.plk", 'rb') as input1:
 			V_b = pickle.load(input1, encoding='latin1')
 
 		U = np.add(U, U_b)
 		V = np.add(V, V_b)
-
-		# with open("prepros/U_10.plk", 'rb') as input1:
-		# 	U_10 = pickle.load(input1, encoding='latin1')
-		# with open("prepros/V_10.plk", 'rb') as input1:
-		# 	V_10 = pickle.load(input1, encoding='latin1')
-		
-		# U = np.add(U_10, U)
-		# V = np.add(V_10, V)
-
-		# with open('U_n.plk', '+bw') as f:
-		# 	pickle.dump(U_n, f)
-
-		# with open('V_n.plk', '+bw') as f:
-		# 	pickle.dump(V_n, f)
 
 		recalls = Recall_based_evaluation(X, U, V, indexes)
 		print(recalls)
